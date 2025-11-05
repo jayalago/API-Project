@@ -3,7 +3,7 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..dependencies.database import Base
 
-
+# maybe could be reformatted for "menu items"?
 class Recipe(Base):
     __tablename__ = "recipes"
 

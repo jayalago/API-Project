@@ -9,6 +9,6 @@ class Rating(Base):
 
     review_text = Column(String(250))
     score = Column(Integer)
-    customer_name = Column(String(100), ForeignKey("customer.name"))
+    customer_name = Column(String(100), ForeignKey("customers.name"))
 
     # rating connected to the customer; unsure if I need to do the backpopulates thing here?
