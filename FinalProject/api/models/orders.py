@@ -3,7 +3,16 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..dependencies.database import Base
 
+class Order(Base):
+    __tablename__ = "orders"
 
+    id = Column(Integer, primary_key=True, index=True)
+    customer_name = Column(String)
+    order_date = Column(datetime)
+    order_status = Column(String, default="Order not in progress")
+    total_price = Column(float, default=0.0)
+
+'''
 class Order(Base):
     __tablename__ = "orders"
 
@@ -14,6 +23,7 @@ class Order(Base):
     description = Column(String(300)) #unsure if needed?
     order_status = Column(String(50))
     total_price = Column(DECIMAL(10,2))
+    '''
 
     order_details = relationship("OrderDetail", back_populates="order")
     customer = relationship("Customer", back_populates="orders")
