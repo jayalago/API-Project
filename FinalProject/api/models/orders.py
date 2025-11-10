@@ -8,9 +8,9 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     customer_name = Column(String)
-    order_date = Column(datetime)
+    order_date = Column(DATETIME)
     order_status = Column(String, default="Order not in progress")
-    total_price = Column(float, default=0.0)
+    total_price = Column(DECIMAL(10,2))
 
 '''
 class Order(Base):
@@ -25,7 +25,7 @@ class Order(Base):
     total_price = Column(DECIMAL(10,2))
     '''
 
-    order_details = relationship("OrderDetail", back_populates="order")
-    customer = relationship("Customer", back_populates="orders")
-    payments = relationship("Payment", back_populates="orders")
-    promotions = relationship("Promotion", back_populates="orders")
+order_details = relationship("OrderDetail", back_populates="order")
+customer = relationship("Customer", back_populates="orders")
+payments = relationship("Payment", back_populates="orders")
+promotions = relationship("Promotion", back_populates="orders")

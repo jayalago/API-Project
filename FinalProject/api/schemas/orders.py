@@ -18,7 +18,7 @@ class Order(OrderBase):
     id: int
     order_date: datetime
 
-    class Config:
+class Config:
         from_attributes = True
 
 
