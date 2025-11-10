@@ -10,7 +10,7 @@ class Payment(Base):
     customer_id = Column(Integer, ForeignKey("customers.id"))
     order_id = Column(Integer, ForeignKey("orders.id"))
     card_information = Column(String(100), nullable=False)
-    transaction_status = Column(Boolean, default=False) # maybe could be a boolean?
+    isTransactionComplete = Column(Boolean, default=False)
     payment_type = Column(String(100))
     amount = Column(DECIMAL(10,2))
 

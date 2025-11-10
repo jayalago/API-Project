@@ -10,7 +10,7 @@ class Customer(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     name = Column(String(100))
     email = Column(String(100), unique=True)
-    phone_number = Column(String(15))
+    phone_number = Column(String(15), default = "Not provided.")
     address = Column(String(150))
 
     orders = relationship("Order", back_populates="customer")
