@@ -3,9 +3,9 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..dependencies.database import Base
 
-# maybe could be reformatted for "menu items"?
-class Recipe(Base):
-    __tablename__ = "recipes"
+# Originally was called "Recipe"
+class Menu(Base):
+    __tablename__ = "menu"
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     sandwich_id = Column(Integer, ForeignKey("sandwiches.id"))
