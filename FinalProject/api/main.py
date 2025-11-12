@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from typing import Annotated
 from sqlalchemy.orm import Session
 from sqlalchemy import func
+#import schemas file somehow
 # all of the new imports are from python project 2
 # that's what i'm using as a reference
 
@@ -33,19 +34,6 @@ db_dependency = Annotated[Session, Depends(get_db)] #needs to be fixed, unsure h
 if __name__ == "__main__":
     uvicorn.run(app, host=conf.app_host, port=conf.app_port)
 
-# do we even need this???? i'm so fucking confused bro - Bella
-class MenuBase(BaseModel):
-    id: int
-    sandwich_id: int
-    resource_id: int
-    amount: int
-
-class SandwichBase(BaseModel):
-    id: int
-    sandwich_name: str
-    price: float
-
-# if we do end up needing the base models, more will go here
 
 # MENU
 @app.get("/menu/", status_code=status.HTTP_200_OK)
