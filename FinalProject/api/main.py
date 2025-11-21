@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .dependencies.database import engine, SessionLocal, get_db #need to figure out how to import these from the database.py in "dependencies"
 from .routers import index as indexRoute
 from .models import model_loader
+from .schemas import schema
 from .dependencies.config import conf
 import models
 from pydantic import BaseModel
