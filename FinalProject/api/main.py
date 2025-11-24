@@ -1,25 +1,19 @@
 import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
-from .dependencies.database import engine, SessionLocal, get_db #need to figure out how to import these from the database.py in "dependencies"
-from .routers import index as indexRoute
+from .dependencies.database import engine, SessionLocal, get_db
 from .models import model_loader
-from .schemas import schema
 from .dependencies.config import conf
-import models
 from pydantic import BaseModel
 from typing import Annotated
 from sqlalchemy.orm import Session
 from sqlalchemy import func
-from .schemas import *
-from .models import *
-
-'''all of the new imports are from python project 2
-# that's what i'm using as a reference
-A lot fo these may end up not even being necessary idk'''
-
+from .schemas import schema
+from .models import customer, menu, orders, payment, promotion, rating, recipes
 
 app = FastAPI()
+
+db_dependency = Annotated[Session, Depends(get_db)]
 
 origins = ["*"]
 
@@ -32,9 +26,6 @@ app.add_middleware(
 )
 
 model_loader.index()
-indexRoute.load_routes(app)
-models.Base.metadata.create_all(bind=engine)
-db_dependency = Annotated[Session, Depends(get_db)] #needs to be fixed, unsure how
 
 if __name__ == "__main__":
     uvicorn.run(app, host=conf.app_host, port=conf.app_port)
@@ -43,23 +34,35 @@ if __name__ == "__main__":
 # MENU
 @app.get("/menu/", status_code=status.HTTP_200_OK)
 async def get_menu(db: db_dependency):
-   return db.query(models.Menu).all()
+   return db.query(menu.Menu).all() # menu.Menu is equivalent to model.class, just specifying which file in the model file to use
 
 @app.post("/menu/", status_code = status.HTTP_201_CREATED)
-async def add_menu_item(menu: MenuBase, db: db_dependency):
-    db_menu = models.Menu(**todo.model_dump())
+async def add_menu_item(Menu: schema.MenuBase, db: db_dependency):
+    db_menu = menu.Menu(**Menu.model_dump()) #lowercase menu is the menu.py file, uppercase is the parameter for the function
     db.add(db_menu)
     db.commit()
     return {"detail": "Item added successfully."}
 
-@app.put("/menu/{menu_id}", response_model = MenuBase, status_code=status.HTTP_200_OK )
-async def update_menu_item(menu_id: int): # more goes in the parenthesis
-    #stuff goes here
-    return {"detail": "Item updated successfully."}
+@app.put("/menu/{menu_id}", response_model = schema.MenuBase, status_code=status.HTTP_200_OK )
+async def update_menu_item(menu_id: int, menu_request: schema.MenuBase, db: db_dependency): # more goes in the parenthesis
+    db_menu = db.query(menu.Menu).filter(menu.Menu.id == menu_id)
+    if db_menu.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    update_data = menu_request.model_dump(exclude_unset = True)
+    db_menu.update(update_data, synchronize_session=False)
+    db.commit()
+    print("Item updated successfully.")
+    return db_menu.first()
+
 
 @app.delete("/menu/{menu_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_menu_item(menu_id: int): #more goes inside parenthesis
-    #stuff goes here
+async def delete_menu_item(menu_id: int, menu_request: schema.MenuBase, db: db_dependency): #more goes inside parenthesis
+    db_menu = db.query(menu.Menu).filter(menu.Menu.id == menu_id)
+    if db_menu.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
+    delete_data = menu_request.model_dump(exclude_unset = True)
+    db_menu.delete(delete_data)
+    db.commit()
     return {"detail": "Item deleted successfully."}
 
 # Orders

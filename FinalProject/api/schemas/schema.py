@@ -41,13 +41,17 @@ class Customer(CustomerBase):
 
 #Menu
 class MenuBase(BaseModel):
-    sandwich_id: int
-    resource_id: int
+    #sandwich_id: int
+    #resource_id: int
+    item_name: str
+    item_ingredients: str
     price: float
 
 class MenuCreate(MenuBase):
-    sandwich_id: Optional[int] = None
-    resource_id: Optional[int] = None
+    #sandwich_id: Optional[int] = None
+    #resource_id: Optional[int] = None
+    item_name: Optional[str]
+    item_ingredients: Optional[str]
     price: Optional[float] = None
 
 class MenuUpdate(BaseModel):

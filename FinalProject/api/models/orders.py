@@ -7,9 +7,9 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    customer_name = Column(String)
+    customer_name = Column(String(50))
     order_date = Column(DATETIME)
-    order_status = Column(String, default="Order not in progress")
+    order_status = Column(String(25), default="Order not in progress")
     total_price = Column(DECIMAL(10,2))
 
 '''
