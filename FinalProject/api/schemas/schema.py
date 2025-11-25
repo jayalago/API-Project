@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 from pydantic import BaseModel
 
 #Sandwiches
@@ -25,16 +25,22 @@ class Sandwich(SandwichBase):
 
 #Customer
 class CustomerBase(BaseModel):
-    pass
+    name: str
+    email: str
+    phone_number: str
+    address: Optional[str] = None
 
 class CustomerCreate(CustomerBase):
     pass
 
 class CustomerUpdate(BaseModel):
-    pass
+    name: Optional[str] = None
+    email: Optional[str] = None
+    phone_number: Optional[str] = None
+    address: Optional[str] = None
 
 class Customer(CustomerBase):
-    pass
+    id: int
 
     class ConfigDict:
         from_attributes = True
@@ -50,12 +56,12 @@ class MenuBase(BaseModel):
 class MenuCreate(MenuBase):
     #sandwich_id: Optional[int] = None
     #resource_id: Optional[int] = None
+    pass
+
+class MenuUpdate(BaseModel):
     item_name: Optional[str]
     item_ingredients: Optional[str]
     price: Optional[float] = None
-
-class MenuUpdate(BaseModel):
-    pass
 
 class Menu(MenuBase):
     id: int
@@ -65,8 +71,9 @@ class Menu(MenuBase):
 
 #Order details
 class OrderDetailBase(BaseModel):
+    order_id: int
+    sandwich_id: int
     amount: int
-
 
 class OrderDetailCreate(OrderDetailBase):
     order_id: int
@@ -81,14 +88,14 @@ class OrderDetailUpdate(BaseModel):
 class OrderDetail(OrderDetailBase):
     id: int
     order_id: int
-    sandwich: Sandwich = None
+    sandwich: Optional[Sandwich]
 
     class ConfigDict:
         from_attributes = True
 
 #Orders
 class OrderBase(BaseModel):
-    customer_name: str
+    customer_id: int
     order_status: Optional[str] = "Order not in progress"
     total_price: Optional[float] = 0.00
 
@@ -101,53 +108,68 @@ class Order(OrderBase):
     id: int
     order_date: datetime
 
-class Config:
+    class Config:
         from_attributes = True
 
 #Payment
 class PaymentBase(BaseModel):
-    pass
+    customer_id: int
+    order_id: int
+    card_information: str
+    amount: float
+    isTransactionComplete: Optional[bool] = False
+
 
 class PaymentCreate(PaymentBase):
     pass
 
 class PaymentUpdate(BaseModel):
-    pass
+    customer_id: Optional[int] = None
+    order_id: Optional[int] = None
+    card_information: Optional[str] = None
+    amount: Optional[float] = None
+    isTransactionComplete: Optional[bool] = None
 
 class Payment(PaymentBase):
-    pass
+    id: int
 
     class ConfigDict:
         from_attributes = True
 
 #Promotion
 class PromotionBase(BaseModel):
-    pass
+    promo_code: str
+    expiration_date: Optional[datetime] = None
+    discount: float
 
 class PromotionCreate(PromotionBase):
     pass
 
 class PromotionUpdate(BaseModel):
-    pass
+    promo_code: Optional[str] = None
+    expiration_date: Optional[datetime] = None
+    discount: Optional[float] = None
 
 class Promotion(PromotionBase):
-    pass
-
     class ConfigDict:
         from_attributes = True
 
 #Rating
 class RatingBase(BaseModel):
-    pass
+    review_text: Optional[str] = None
+    score: int
+    customer_id: int
 
 class RatingCreate(RatingBase):
     pass
 
 class RatingUpdate(BaseModel):
-    pass
+    review_text: Optional[str] = None
+    score: Optional[int] = None
+    customer_id: Optional[int] = None
 
 class Rating(RatingBase):
-    pass
+    id: int
 
     class ConfigDict:
         from_attributes = True
@@ -158,16 +180,15 @@ class RecipesBase(BaseModel):
 
 class RecipesCreate(RecipesBase):
     sandwich_id: int
-    resources_id: int
+    resource_id: int
 
 class RecipesUpdate(BaseModel):
     sandwich_id: Optional[int] = None
-    resources_id: Optional[int] = None
+    resource_id: Optional[int] = None
     amount: Optional[int] = None
 
 class Recipes(RecipesBase):
-    pass
-
+    id: int
     class ConfigDict:
         from_attributes = True
 
