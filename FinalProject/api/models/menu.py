@@ -8,9 +8,9 @@ from ..dependencies.database import Base
 class Menu(Base):
     __tablename__ = "menu"
 
-    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
+    id = Column(Integer, primary_key=True, index=True)
     item_name = Column(String(250), nullable=False)
-    item_ingredients = Column(String(250))
+    item_ingredients = Column(String(250), nullable=False)
     #sandwich_id = Column(Integer, ForeignKey("sandwiches.id"))
     #resource_id = Column(Integer, ForeignKey("resources.id"))
     price = Column(DECIMAL(3,2), index=True, nullable=False, server_default='0.00')

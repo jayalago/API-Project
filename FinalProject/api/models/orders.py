@@ -7,7 +7,7 @@ class Order(Base):
     __tablename__ = "orders"
 
     id = Column(Integer, primary_key=True, index=True)
-    customer_name = Column(String(50))
+    customer_id = Column(Integer, ForeignKey("customers.id"))
     order_date = Column(DATETIME)
     order_status = Column(String(25), default="Order not in progress")
     total_price = Column(DECIMAL(10,2))
@@ -28,4 +28,5 @@ class Order(Base):
 order_details = relationship("OrderDetail", back_populates="order")
 customer = relationship("Customer", back_populates="orders")
 payments = relationship("Payment", back_populates="orders")
+promotion_code = Column(String(250), ForeignKey("promotion.promotion_code"), nullable=True)
 promotions = relationship("Promotion", back_populates="orders")
