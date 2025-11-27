@@ -31,7 +31,7 @@ if __name__ == "__main__":
     uvicorn.run(app, host=conf.app_host, port=conf.app_port)
 
 # I think once the Menu schema is completed, this will work better
-# MENU
+# MENU =====================================================================================================
 @app.get("/menu/", status_code=status.HTTP_200_OK)
 async def get_menu(db: db_dependency):
    return db.query(menu.Menu).all() # menu.Menu is equivalent to model.class, just specifying which file in the model file to use
@@ -65,8 +65,9 @@ async def delete_menu_item(menu_id: int, menu_request: schema.MenuBase, db: db_d
     db.commit()
     return {"detail": "Item deleted successfully."}
 
-# Orders
+# Orders ============================================================================================
 
-# Customers
+
+# Customers ================================================================================================
 
 #

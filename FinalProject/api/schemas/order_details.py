@@ -5,7 +5,9 @@ from .sandwiches import Sandwich
 
 
 class OrderDetailBase(BaseModel):
-    amount: int
+    customer_name: str
+    order_status: Optional[str] = "Order not in progress"
+    total_price: Optional[float] = 0.00
 
 
 class OrderDetailCreate(OrderDetailBase):
@@ -22,6 +24,7 @@ class OrderDetail(OrderDetailBase):
     id: int
     order_id: int
     sandwich: Sandwich = None
+    order_date: datetime
 
     class ConfigDict:
         from_attributes = True

@@ -13,5 +13,5 @@ class Rating(Base):
     score = Column(Integer, CheckConstraint('score BETWEEN 1 AND 5'))
     customer_id = Column(Integer, ForeignKey("customers.id"))
 
-    # rating connected to the customer; unsure if I need to do the backpopulates thing here?
     customer = relationship("Customer", back_populates="ratings")
+    menu_item = relationship("MenuItem", back_populates="ratings")
