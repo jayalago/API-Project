@@ -66,6 +66,12 @@ async def delete_menu_item(menu_id: int, menu_request: schema.MenuBase, db: db_d
     return {"detail": "Item deleted successfully."}
 
 # Orders ============================================================================================
+@app.post("/order_details/", status_code=status.HTTP_201_CREATED)
+async def create_order_details(db: db_dependency):
+    db_orderdetails = orders.OrderDetails()
+    db.add(db_orderdetails)
+    db.commit()
+    return {"detail": "Order created successfully."}
 
 
 # Customers ================================================================================================
