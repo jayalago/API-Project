@@ -3,6 +3,6 @@ class conf:
     db_name = "final_project"
     db_port = 3306
     db_user = "root"
-    db_password = "rootroot" #put YOUR personal password for MySQL here, please remember to delete before pushing to github!
+    db_password = "S0laris#1" #put YOUR personal password for MySQL here, please remember to delete before pushing to github!
     app_host = "localhost"
     app_port = 8000

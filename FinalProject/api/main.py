@@ -9,7 +9,7 @@ from typing import Annotated
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from .schemas import schema
-from .models import customer, menu, orders, payment, promotion, rating, recipes
+from .models import customer, menu, payment, promotion, rating, recipes, orders
 
 app = FastAPI()
 
@@ -31,7 +31,7 @@ if __name__ == "__main__":
     uvicorn.run(app, host=conf.app_host, port=conf.app_port)
 
 # I think once the Menu schema is completed, this will work better
-# MENU =====================================================================================================
+# Menu =====================================================================================================
 @app.get("/menu/", status_code=status.HTTP_200_OK)
 async def get_menu(db: db_dependency):
    return db.query(menu.Menu).all() # menu.Menu is equivalent to model.class, just specifying which file in the model file to use
@@ -66,12 +66,44 @@ async def delete_menu_item(menu_id: int, menu_request: schema.MenuBase, db: db_d
     return {"detail": "Item deleted successfully."}
 
 # Orders ============================================================================================
-@app.post("/order_details/", status_code=status.HTTP_201_CREATED)
-async def create_order_details(db: db_dependency):
-    db_orderdetails = orders.OrderDetails()
-    db.add(db_orderdetails)
+@app.get("/orders/", status_code=status.HTTP_200_OK)
+async def get_all_orders(db: db_dependency):
+   return db.query(orders.Order).all()
+
+@app.get("/orders/{order_id}", status_code=status.HTTP_200_OK)
+async def get_order(order_id: int, db: db_dependency):
+    db_order = db.query(orders.Order).filter(orders.Order.id == order_id)
+    if db_order.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    return db_order.first()
+
+@app.post("/orders/", status_code=status.HTTP_201_CREATED)
+async def add_new_order(Orders: schema.OrderBase, db: db_dependency):
+    db_orders = orders.Order(**Orders.model_dump())
+    db.add(db_orders)
     db.commit()
     return {"detail": "Order created successfully."}
+
+@app.put("/order/{order_id}", response_model = schema.OrderBase, status_code=status.HTTP_200_OK )
+async def update_order(order_id: int, order_request: schema.OrderUpdate, db: db_dependency): # more goes in the parenthesis
+    db_order = db.query(orders.Order).filter(orders.Order.id == order_id)
+    if db_order.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    update_data = order_request.model_dump(exclude_unset = True)
+    db_order.update(update_data, synchronize_session=False)
+    db.commit()
+    print("Order updated successfully.")
+    return db_order.first()
+
+@app.delete("/order/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_order(order_id: int, order_request: schema.OrderBase, db: db_dependency): #more goes inside parenthesis
+    db_order = db.query(orders.Order).filter(orders.Order.id == order_id)
+    if db_order.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
+    delete_data = order_request.model_dump(exclude_unset = True)
+    db_order.delete(delete_data)
+    db.commit()
+    return {"detail": "Order deleted successfully."}
 
 
 # Customers ================================================================================================

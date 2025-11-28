@@ -3,6 +3,8 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from ..dependencies.database import Base
 
+#IGNORE THIS
+
 class OrderDetail(Base):
     __tablename__ = "order_details"
 

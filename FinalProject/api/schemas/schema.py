@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel
-
+'''
 #Sandwiches
 class SandwichBase(BaseModel):
     sandwich_name: str
@@ -22,7 +22,7 @@ class Sandwich(SandwichBase):
 
     class ConfigDict:
         from_attributes = True
-
+'''
 #Customer
 class CustomerBase(BaseModel):
     name: str
@@ -68,7 +68,7 @@ class Menu(MenuBase):
 
     class ConfigDict:
         from_attributes = True
-
+'''
 #Order details
 class OrderDetailBase(BaseModel):
     order_id: int
@@ -92,16 +92,28 @@ class OrderDetail(OrderDetailBase):
 
     class ConfigDict:
         from_attributes = True
+        '''
 
 #Orders
 class OrderBase(BaseModel):
+    id: int
     customer_id: int
+    menu_id: int
+    quantity: int
     order_status: Optional[str] = "Order not in progress"
     total_price: Optional[float] = 0.00
 
 
 class OrderCreate(OrderBase):
-    order_details: Optional[list[OrderDetail]] = None
+    # order_details: Optional[list[OrderDetail]] = None
+    pass
+
+class OrderUpdate(BaseModel):
+    customer_id: Optional[int] = None
+    menu_id: Optional[int] = None
+    quantity: Optional[int] = None
+    order_status: Optional[str] = None
+    total_price: Optional[float] = None
 
 
 class Order(OrderBase):
