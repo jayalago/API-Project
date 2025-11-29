@@ -107,5 +107,41 @@ async def delete_order(order_id: int, order_request: schema.OrderBase, db: db_de
 
 
 # Customers ================================================================================================
+@app.get("/customers/", status_code=status.HTTP_200_OK)
+async def get_all_customers(db: db_dependency):
+    return db.query(customer.Customer).all()
 
+@app.get("/customers/{customer_id}", status_code=status.HTTP_200_OK)
+async def get_customer(customer_id: int, db: db_dependency):
+    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id)
+    if db_customer.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
+    return db_customer.first()
+
+@app.post("/customers/", status_code=status.HTTP_201_CREATED)
+async def add_new_customer(customer_data: schema.CustomerBase, db: db_dependency):
+    db_customer =  customer.Customer(**customer_data.model_dump())
+    db.add(db_customer)
+    db.commit()
+    return {"detail": "Customer created successfully."}
+
+@app.put("/customers/{customer_id}", response_model=schema.CustomerBase, status_code=status.HTTP_200_OK )
+async def update_customer(customer_id: int, customer_request: schema.CustomerUpdate, db: db_dependency):
+    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id)
+    if db_customer.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
+    update_data = customer_request.model_dump(exclude_unset = True)
+    db_customer.update(update_data, synchronize_session=False)
+    db.commit()
+    print("Customer updated successfully.")
+    return db_customer.first()
+
+@app.delete("/customers/{customer_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_customer(customer_id: int, db: db_dependency):
+    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id)
+    if db_customer.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
+    db_customer.delete(synchronize_session=False)
+    db.commit()
+    return {"detail": "Customer deleted successfully."}
 #
