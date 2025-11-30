@@ -144,4 +144,82 @@ async def delete_customer(customer_id: int, db: db_dependency):
     db_customer.delete(synchronize_session=False)
     db.commit()
     return {"detail": "Customer deleted successfully."}
-#
+
+# Promotions ================================================================================================
+@app.get("/promotions/", status_code=status.HTTP_200_OK)
+async def get_all_promotions(db: db_dependency):
+    return db.query(promotion.Promotion).all()
+
+@app.get("/promotions/{promotion_id}", status_code=status.HTTP_200_OK)
+async def get_promotion(promotion_id: int, db: db_dependency):
+    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.id == promotion_id)
+    if db_promotion.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Promotion not found")
+    return db_promotion.first()
+
+@app.post("/promotions/", status_code=status.HTTP_201_CREATED)
+async def add_new_promotion(promotion: schema.Promotion, db: db_dependency):
+    db_promotion = promotion.Promotion(**promotion.model_dump())
+    db.add(db_promotion)
+    db.commit()
+    return {"detail": "Promotion created successfully."}
+
+@app.put("/promotions/{promotion_id}", response_model=schema.Promotion, status_code=status.HTTP_200_OK )
+async def update_promotion(promotion_id: int, promotion_request: schema.PromotionUpdate, db: db_dependency):
+    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.id == promotion_id)
+    if db_promotion.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Promotion not found")
+    update_data = promotion_request.model_dump(exclude_unset = True)
+    db_promotion.update(update_data, synchronize_session=False)
+    db.commit()
+    print("Promotion updated successfully.")
+    return db_promotion.first()
+
+@app.delete("/promotions/{promotion_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_promotion(promotion_id: int, db: db_dependency):
+    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.id == promotion_id)
+    if db_promotion.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Promotion not found")
+    db_promotion.delete(synchronize_session=False)
+    db.commit()
+    return {"detail": "Promotion deleted successfully."}
+
+# Ratings ================================================================================================
+@app.get("/ratings/", status_code=status.HTTP_200_OK)
+async def get_ratings(db: db_dependency):
+    return db.query(rating.Rating).all()
+
+@app.get("/ratings/{rating_id}", status_code=status.HTTP_200_OK)
+async def get_rating(rating_id: int, db: db_dependency):
+    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id)
+    if db_rating.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found")
+    return db_rating.first()
+
+@app.post("/ratings/", response_model=schema.Rating, status_code=status.HTTP_200_OK )
+async def add_new_rating(rating: schema.Rating, db: db_dependency):
+    db_rating = rating.Rating(**rating.model_dump())
+    db.add(db_rating)
+    db.commit()
+    return {"detail": "Rating created successfully."}
+
+@app.put("/ratings/{rating_id}", response_model=schema.RatingBase, status_code=status.HTTP_200_OK)
+async def update_rating(rating_id: int, rating: schema.Rating, db: db_dependency):
+    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id)
+    if db_rating.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found")
+    update_data = rating.model_dump(exclude_unset = True)
+    db_rating.update(update_data, synchronize_session=False)
+    db.commit()
+    print("Rating updated successfully.")
+    return db_rating.first()
+
+@app.delete("/ratings/{rating_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rating(rating_id: int, db: db_dependency):
+    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id)
+    if db_rating.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found")
+    db_rating.delete(synchronize_session=False)
+    db.commit()
+    return {"detail": "Rating deleted successfully."}
+
