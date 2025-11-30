@@ -96,7 +96,7 @@ async def update_order(order_id: int, order_request: schema.OrderUpdate, db: db_
     return db_order.first()
 
 @app.delete("/order/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_order(order_id: int, order_request: schema.OrderBase, db: db_dependency): #more goes inside parenthesis
+async def delete_order(order_id: int, order_request: schema.OrderUpdate, db: db_dependency): #more goes inside parenthesis
     db_order = db.query(orders.Order).filter(orders.Order.id == order_id)
     if db_order.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
@@ -197,18 +197,18 @@ async def get_rating(rating_id: int, db: db_dependency):
     return db_rating.first()
 
 @app.post("/ratings/", response_model=schema.Rating, status_code=status.HTTP_200_OK )
-async def add_new_rating(rating: schema.Rating, db: db_dependency):
-    db_rating = rating.Rating(**rating.model_dump())
+async def add_new_rating(Rating: schema.Rating, db: db_dependency):
+    db_rating = rating.Rating(**Rating.model_dump())
     db.add(db_rating)
     db.commit()
     return {"detail": "Rating created successfully."}
 
 @app.put("/ratings/{rating_id}", response_model=schema.RatingBase, status_code=status.HTTP_200_OK)
-async def update_rating(rating_id: int, rating: schema.Rating, db: db_dependency):
+async def update_rating(rating_id: int, rating_request: schema.RatingUpdate, db: db_dependency):
     db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id)
     if db_rating.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found")
-    update_data = rating.model_dump(exclude_unset = True)
+    update_data = rating_request.model_dump(exclude_unset = True)
     db_rating.update(update_data, synchronize_session=False)
     db.commit()
     print("Rating updated successfully.")
