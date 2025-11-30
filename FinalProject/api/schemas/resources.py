@@ -22,3 +22,6 @@ class Resource(ResourceBase):
 
     class ConfigDict:
         from_attributes = True
+
+
+

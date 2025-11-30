@@ -223,3 +223,24 @@ async def delete_rating(rating_id: int, db: db_dependency):
     db.commit()
     return {"detail": "Rating deleted successfully."}
 
+#Payment ==========================================================
+
+@app.get("/payments/", status_code=status.HTTP_200_OK)
+async def get_all_payments(db: db_dependency):
+    return db.query(payment.Payment).all()
+
+
+@app.get("/payments/{payment_id}", status_code=status.HTTP_200_OK)
+async def get_payment(payment_id: int, db: db_dependency):
+    db_payment = db.query(payment.Payment).filter(payment.Payment.id == payment_id)
+    if db_payment.first() is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+    return db_payment.first()
+
+
+@app.post("/payments/", status_code=status.HTTP_201_CREATED)
+async def add_new_payment(payment_data: schema.PaymentCreate, db: db_dependency):
+    db_payment = payment.Payment(**payment_data.model_dump())
+    db.add(db_payment)
+    db.commit()
+    return {"detail": "Payment created successfully."}
