@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from .dependencies.database import engine, SessionLocal, get_db
 from .dependencies.config import conf
 from pydantic import BaseModel
-from typing import Annotated
+from typing import Annotated, List
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from .schemas import schema
@@ -31,7 +31,7 @@ if __name__ == "__main__":
 
 # I think once the Menu schema is completed, this will work better
 # Menu =====================================================================================================
-@app.get("/menu/", status_code=status.HTTP_200_OK, tags=["Menu"])
+@app.get("/menu/", response_model=List[schema.Menu], tags=["Menu"])
 async def get_menu(db: db_dependency):
    return db.query(menu.Menu).all() # menu.Menu is equivalent to model.class, just specifying which file in the model file to use
 

@@ -11,7 +11,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     customer_id = Column(Integer, ForeignKey("customers.id"))
     menu_item_id = Column(Integer, ForeignKey("menu.id"))
-    promotion_code = Column(String(250), ForeignKey("promotions.promo_code"), nullable=True)
+    promo_code = Column(String(250), ForeignKey("promotions.promo_code"), nullable=True)
 
     order_date = Column(DATETIME, default=datetime.utcnow)
     isTakeout = Column(Boolean, default=False)

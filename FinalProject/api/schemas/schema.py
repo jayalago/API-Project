@@ -102,7 +102,7 @@ class OrderBase(BaseModel):
     quantity: int
     order_status: Optional[str] = "Order not in progress"
     total_price: Optional[float] = 0.00
-    promotion_code: Optional[str] = None
+    promo_code: Optional[str] = None
 
 
 class OrderCreate(OrderBase):
@@ -115,7 +115,7 @@ class OrderUpdate(BaseModel):
     quantity: Optional[int] = None
     order_status: Optional[str] = None
     total_price: Optional[float] = None
-    promotion_code: Optional[str] = None
+    promo_code: Optional[str] = None
 
 
 class Order(OrderBase):
