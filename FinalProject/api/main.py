@@ -36,6 +36,11 @@ if __name__ == "__main__":
 async def get_menu(db: db_dependency):
    return db.query(menu.Menu).all() # menu.Menu is equivalent to model.class, just specifying which file in the model file to use
 
+@app.get("/menu/vegetarian", status_code=status.HTTP_200_OK)
+async def get_vegetarian_menu(db: db_dependency = Depends(get_db)):
+    return db.query(menu.Menu).filter(menu.Menu.isVegetarian == True).all()
+
+
 @app.post("/menu/", status_code = status.HTTP_201_CREATED)
 async def add_menu_item(Menu: schema.MenuBase, db: db_dependency):
     db_menu = menu.Menu(**Menu.model_dump()) #lowercase menu is the menu.py file, uppercase is the parameter for the function
@@ -70,19 +75,29 @@ async def delete_menu_item(menu_id: int, menu_request: schema.MenuBase, db: db_d
 async def get_all_orders(db: db_dependency):
    return db.query(orders.Order).all()
 
-@app.get("/orders/{order_id}", status_code=status.HTTP_200_OK)
-async def get_order(order_id: int, db: db_dependency):
-    db_order = db.query(orders.Order).filter(orders.Order.id == order_id)
-    if db_order.first() is None:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-    return db_order.first()
+#This reveals all order details
+@app.get("/orders/{tracking_number}", status_code=status.HTTP_200_OK)
+async def track_order(tracking_number: int, db: db_dependency):
+    db_order = db.query(orders.Order).filter(orders.Order.id == tracking_number).first()
+    if not db_order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    return {
+        "tracking_number": db_order.id,
+        "status": db_order.order_status,
+        "order_date": db_order.order_date,
+        "is_takeout": db_order.is_takeout,
+        "is_delivery": db_order.is_delivery,
+        "total_price": db_order.total_price
+    }
 
 @app.post("/orders/", status_code=status.HTTP_201_CREATED)
 async def add_new_order(Orders: schema.OrderBase, db: db_dependency):
     db_orders = orders.Order(**Orders.model_dump())
     db.add(db_orders)
     db.commit()
-    return {"detail": "Order created successfully."}
+    return {"detail": "Order created successfully.",
+            "tracking_number": orders.id
+            }
 
 @app.put("/order/{order_id}", response_model = schema.OrderBase, status_code=status.HTTP_200_OK )
 async def update_order(order_id: int, order_request: schema.OrderUpdate, db: db_dependency): # more goes in the parenthesis
@@ -104,6 +119,7 @@ async def delete_order(order_id: int, order_request: schema.OrderUpdate, db: db_
     db_order.delete(delete_data)
     db.commit()
     return {"detail": "Order deleted successfully."}
+
 
 
 # Customers ================================================================================================

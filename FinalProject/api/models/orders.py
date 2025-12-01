@@ -1,3 +1,5 @@
+from xmlrpc.client import Boolean
+
 from sqlalchemy import Column, ForeignKey, Integer, String, DECIMAL, DATETIME
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -6,13 +8,18 @@ from ..dependencies.database import Base
 class Order(Base):
     __tablename__ = "orders"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     customer_id = Column(Integer, ForeignKey("customers.id"))
-    order_date = Column(DATETIME)
     menu_item_id = Column(Integer, ForeignKey("menu.id"))
+
+    order_date = Column(DATETIME, default=datetime.utcnow)
+    isTakeout = Column(Boolean, default=False)
+    isDelivery = Column(Boolean, default=False)
+
     quantity = Column(Integer, default=1)
     order_status = Column(String(25), default="Order not in progress")
     total_price = Column(DECIMAL(10,2))
+
 
 # order_details = relationship("OrderDetail", back_populates="order")
 customer = relationship("Customer", back_populates="orders")
