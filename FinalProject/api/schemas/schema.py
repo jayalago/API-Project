@@ -1,28 +1,7 @@
 from datetime import datetime
 from typing import Optional, List
 from pydantic import BaseModel
-'''
-#Sandwiches
-class SandwichBase(BaseModel):
-    sandwich_name: str
-    price: float
 
-
-class SandwichCreate(SandwichBase):
-    pass
-
-
-class SandwichUpdate(BaseModel):
-    sandwich_name: Optional[str] = None
-    price: Optional[float] = None
-
-
-class Sandwich(SandwichBase):
-    id: int
-
-    class ConfigDict:
-        from_attributes = True
-'''
 #Customer
 class CustomerBase(BaseModel):
     name: str
