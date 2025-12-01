@@ -2,6 +2,7 @@ from fastapi.testclient import TestClient
 from ..controllers import orders as controller
 from ..main import app
 import pytest
+import httpx
 from ..models import orders as model
 
 # Create a test client for the app
