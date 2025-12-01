@@ -178,104 +178,137 @@ async def delete_customer(customer_id: int, db: db_dependency):
 
 
 
-"""
 # Promotions ================================================================================================
-@app.get("/promotions/", status_code=status.HTTP_200_OK)
+@app.get("/promotions/", status_code=status.HTTP_200_OK, tags=["Promotions"])
 async def get_all_promotions(db: db_dependency):
     return db.query(promotion.Promotion).all()
 
-@app.get("/promotions/{promotion_id}", status_code=status.HTTP_200_OK)
-async def get_promotion(promotion_id: int, db: db_dependency):
-    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.id == promotion_id)
-    if db_promotion.first() is None:
+@app.get("/promotions/{promotion_id}", status_code=status.HTTP_200_OK, tags=["Promotions"])
+async def get_promotion(promo_code: str, db: db_dependency):
+    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.promo_code == promo_code).first()
+    if db_promotion is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Promotion not found")
-    return db_promotion.first()
+    return db_promotion
 
-@app.post("/promotions/", status_code=status.HTTP_201_CREATED)
-async def add_new_promotion(promotion: schema.Promotion, db: db_dependency):
-    db_promotion = promotion.Promotion(**promotion.model_dump())
+@app.post("/promotions/", status_code=status.HTTP_201_CREATED, tags=["Promotions"])
+async def add_new_promotion(promotion_request: schema.PromotionCreate, db: db_dependency):
+    db_promotion = promotion.Promotion(**promotion_request.model_dump())
     db.add(db_promotion)
     db.commit()
-    return {"detail": "Promotion created successfully."}
+    db.refresh(db_promotion)
+    return {"detail": "Promotion created successfully.", "promo_code": db_promotion.promo_code}
 
-@app.put("/promotions/{promotion_id}", response_model=schema.Promotion, status_code=status.HTTP_200_OK )
-async def update_promotion(promotion_id: int, promotion_request: schema.PromotionUpdate, db: db_dependency):
-    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.id == promotion_id)
-    if db_promotion.first() is None:
+@app.put("/promotions/{promo_code}", response_model=schema.Promotion, status_code=status.HTTP_200_OK, tags=["Promotions"])
+async def update_promotion(promo_code: str, promotion_request: schema.PromotionUpdate, db: db_dependency):
+    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.promo_code == promo_code).first()
+    if db_promotion is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Promotion not found")
     update_data = promotion_request.model_dump(exclude_unset = True)
-    db_promotion.update(update_data, synchronize_session=False)
+    for key, value in update_data.items():
+        setattr(db_promotion, key, value)
+    #db_promotion.update(update_data, synchronize_session=False)
     db.commit()
-    print("Promotion updated successfully.")
-    return db_promotion.first()
+    db.refresh(db_promotion)
+    #print("Promotion updated successfully.")
+    return db_promotion
 
-@app.delete("/promotions/{promotion_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_promotion(promotion_id: int, db: db_dependency):
-    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.id == promotion_id)
-    if db_promotion.first() is None:
+@app.delete("/promotions/{promo_code}", status_code=status.HTTP_204_NO_CONTENT, tags=["Promotions"])
+async def delete_promotion(promo_code: str, db: db_dependency):
+    db_promotion = db.query(promotion.Promotion).filter(promotion.Promotion.promo_code == promo_code).first()
+    if db_promotion is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Promotion not found")
-    db_promotion.delete(synchronize_session=False)
+    db.delete(db_promotion)
     db.commit()
     return {"detail": "Promotion deleted successfully."}
 
 # Ratings ================================================================================================
-@app.get("/ratings/", status_code=status.HTTP_200_OK)
+@app.get("/ratings/", status_code=status.HTTP_200_OK, tags=["Ratings"])
 async def get_ratings(db: db_dependency):
     return db.query(rating.Rating).all()
 
-@app.get("/ratings/{rating_id}", status_code=status.HTTP_200_OK)
+@app.get("/ratings/{rating_id}", status_code=status.HTTP_200_OK, tags=["Ratings"])
 async def get_rating(rating_id: int, db: db_dependency):
-    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id)
-    if db_rating.first() is None:
+    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id).first()
+    if db_rating is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found")
-    return db_rating.first()
+    return db_rating
 
-@app.post("/ratings/", response_model=schema.Rating, status_code=status.HTTP_200_OK )
-async def add_new_rating(Rating: schema.Rating, db: db_dependency):
-    db_rating = rating.Rating(**Rating.model_dump())
+@app.post("/ratings/", response_model=schema.Rating, status_code=status.HTTP_200_OK, tags=["Ratings"])
+async def add_new_rating(rating_request: schema.RatingCreate, db: db_dependency):
+    db_rating = rating.Rating(**rating_request.model_dump())
     db.add(db_rating)
     db.commit()
-    return {"detail": "Rating created successfully."}
+    db.refresh(db_rating)
+    #return {"detail": "Rating created successfully."}
+    return db_rating
 
-@app.put("/ratings/{rating_id}", response_model=schema.RatingBase, status_code=status.HTTP_200_OK)
+@app.put("/ratings/{rating_id}", response_model=schema.RatingBase, status_code=status.HTTP_200_OK, tags=["Ratings"])
 async def update_rating(rating_id: int, rating_request: schema.RatingUpdate, db: db_dependency):
-    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id)
-    if db_rating.first() is None:
+    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id).first()
+    if db_rating is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found")
     update_data = rating_request.model_dump(exclude_unset = True)
-    db_rating.update(update_data, synchronize_session=False)
+    for key, value in update_data.items():
+        setattr(db_rating, key, value)
+    #db_rating.update(update_data, synchronize_session=False)
     db.commit()
-    print("Rating updated successfully.")
-    return db_rating.first()
+    db.refresh(db_rating)
+    #print("Rating updated successfully.")
+    return db_rating
 
-@app.delete("/ratings/{rating_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/ratings/{rating_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Ratings"])
 async def delete_rating(rating_id: int, db: db_dependency):
-    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id)
-    if db_rating.first() is None:
+    db_rating = db.query(rating.Rating).filter(rating.Rating.id == rating_id).first()
+    if db_rating is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Rating not found")
-    db_rating.delete(synchronize_session=False)
+    db.delete(db_rating)
     db.commit()
     return {"detail": "Rating deleted successfully."}
 
 #Payment ==========================================================
 
-@app.get("/payments/", status_code=status.HTTP_200_OK)
+@app.get("/payments/", status_code=status.HTTP_200_OK, tags=["Payments"])
 async def get_all_payments(db: db_dependency):
     return db.query(payment.Payment).all()
 
-
-@app.get("/payments/{payment_id}", status_code=status.HTTP_200_OK)
+@app.get("/payments/{payment_id}", status_code=status.HTTP_200_OK, tags=["Payments"])
 async def get_payment(payment_id: int, db: db_dependency):
-    db_payment = db.query(payment.Payment).filter(payment.Payment.id == payment_id)
-    if db_payment.first() is None:
+    db_payment = db.query(payment.Payment).filter(payment.Payment.id == payment_id).first()
+    if db_payment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
-    return db_payment.first()
+    return db_payment
 
-
-@app.post("/payments/", status_code=status.HTTP_201_CREATED)
+@app.post("/payments/", status_code=status.HTTP_201_CREATED, tags=["Payments"])
 async def add_new_payment(payment_data: schema.PaymentCreate, db: db_dependency):
     db_payment = payment.Payment(**payment_data.model_dump())
     db.add(db_payment)
     db.commit()
     return {"detail": "Payment created successfully."}
-"""
+
+@app.put("/payments/{payment_id}", response_model=schema.Payment, status_code=status.HTTP_200_OK, tags=["Payments"])
+async def update_payemnt(payment_id: int, payment_data: schema.PaymentUpdate, db: db_dependency):
+    db_payment = db.query(payment.Payment).filter(payment.Payment.id == payment_id).first()
+    if db_payment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+    update_data = payment_data.model_dump(exclude_unset = True)
+    for key, value in update_data.items():
+        setattr(db_payment, key, value)
+    db.commit()
+    db.refresh(db_payment)
+    return db_payment
+@app.delete("payemnts/{payment_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Payments"])
+async def delete_payment(payment_id: int, db: db_dependency):
+    db_payment = db.query(payment.Payment).filter(payment.Payment.id == payment_id).first()
+    if db_payment is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
+    db.delete(db_payment)
+    db.commit()
+    return {"detail": "Payment deleted successfully."}
+
+
+
+
+
+
+
+
