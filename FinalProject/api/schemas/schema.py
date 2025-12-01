@@ -52,16 +52,16 @@ class MenuBase(BaseModel):
     item_name: str
     item_ingredients: str
     price: float
+    isVegetarian: bool
 
 class MenuCreate(MenuBase):
-    #sandwich_id: Optional[int] = None
-    #resource_id: Optional[int] = None
     pass
 
 class MenuUpdate(BaseModel):
     item_name: Optional[str]
     item_ingredients: Optional[str]
     price: Optional[float] = None
+    isVegetarian: Optional[bool] = None
 
 class Menu(MenuBase):
     id: int
@@ -96,12 +96,13 @@ class OrderDetail(OrderDetailBase):
 
 #Orders
 class OrderBase(BaseModel):
-    id: int
+    #id: int
     customer_id: int
-    menu_id: int
+    menu_item_id: int
     quantity: int
     order_status: Optional[str] = "Order not in progress"
     total_price: Optional[float] = 0.00
+    promotion_code: Optional[str] = None
 
 
 class OrderCreate(OrderBase):
@@ -114,6 +115,7 @@ class OrderUpdate(BaseModel):
     quantity: Optional[int] = None
     order_status: Optional[str] = None
     total_price: Optional[float] = None
+    promotion_code: Optional[str] = None
 
 
 class Order(OrderBase):
@@ -128,6 +130,7 @@ class PaymentBase(BaseModel):
     customer_id: int
     order_id: int
     card_information: str
+    payment_type: str
     amount: float
     isTransactionComplete: Optional[bool] = False
 
@@ -139,6 +142,7 @@ class PaymentUpdate(BaseModel):
     customer_id: Optional[int] = None
     order_id: Optional[int] = None
     card_information: Optional[str] = None
+    payment_type: Optional[str] = None
     amount: Optional[float] = None
     isTransactionComplete: Optional[bool] = None
 
@@ -171,6 +175,7 @@ class RatingBase(BaseModel):
     review_text: Optional[str] = None
     score: int
     customer_id: int
+    menu_id: int
 
 class RatingCreate(RatingBase):
     pass
@@ -179,6 +184,7 @@ class RatingUpdate(BaseModel):
     review_text: Optional[str] = None
     score: Optional[int] = None
     customer_id: Optional[int] = None
+    menu_id: Optional[int] = None
 
 class Rating(RatingBase):
     id: int
@@ -191,11 +197,11 @@ class RecipesBase(BaseModel):
     amount: int
 
 class RecipesCreate(RecipesBase):
-    sandwich_id: int
+    menu_id: int
     resource_id: int
 
 class RecipesUpdate(BaseModel):
-    sandwich_id: Optional[int] = None
+    menu_id: Optional[int] = None
     resource_id: Optional[int] = None
     amount: Optional[int] = None
 
