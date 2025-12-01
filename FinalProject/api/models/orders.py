@@ -1,5 +1,5 @@
-from xmlrpc.client import Boolean
-
+#from xmlrpc.client import Boolean
+from sqlalchemy import Boolean
 from sqlalchemy import Column, ForeignKey, Integer, String, DECIMAL, DATETIME
 from sqlalchemy.orm import relationship
 from datetime import datetime
@@ -11,6 +11,7 @@ class Order(Base):
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     customer_id = Column(Integer, ForeignKey("customers.id"))
     menu_item_id = Column(Integer, ForeignKey("menu.id"))
+    promotion_code = Column(String(250), ForeignKey("promotions.promo_code"), nullable=True)
 
     order_date = Column(DATETIME, default=datetime.utcnow)
     isTakeout = Column(Boolean, default=False)
@@ -24,8 +25,8 @@ class Order(Base):
 # order_details = relationship("OrderDetail", back_populates="order")
 customer = relationship("Customer", back_populates="orders")
 payments = relationship("Payment", back_populates="orders")
-promotion_code = Column(String(250), ForeignKey("promotion.promotion_code"), nullable=True)
 promotions = relationship("Promotion", back_populates="orders")
+menu = relationship("Menu", back_populates="orders")
 
 '''originally in order_details.py:
 class OrderDetail(Base):

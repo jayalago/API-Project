@@ -14,4 +14,6 @@ class Menu(Base):
     isVegetarian = Column(Boolean, default=False)
     price = Column(DECIMAL(3,2), index=True, nullable=False, server_default='0.00')
     # Relationships =======================================================================
-    order_details = relationship("order_details", back_populates="menu")
+    rating = relationship("Rating", back_populates="menu")
+    orders = relationship("Order", back_populates="menu")
+    recipes = relationship("Recipes", back_populates="menu")

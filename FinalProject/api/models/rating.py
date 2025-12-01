@@ -12,6 +12,7 @@ class Rating(Base):
     review_text = Column(String(250), default = "No review provided.")
     score = Column(Integer, CheckConstraint('score BETWEEN 1 AND 5'))
     customer_id = Column(Integer, ForeignKey("customers.id"))
+    menu_item_id = Column(Integer, ForeignKey("menu.id"))
 
     customer = relationship("Customer", back_populates="ratings")
-    menu_item = relationship("MenuItem", back_populates="ratings")
+    menu = relationship("Menu", back_populates="ratings")
