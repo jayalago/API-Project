@@ -2,14 +2,13 @@ import uvicorn
 from fastapi import Depends, FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
 from .dependencies.database import engine, SessionLocal, get_db
-from .models import model_loader
 from .dependencies.config import conf
 from pydantic import BaseModel
 from typing import Annotated
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from .schemas import schema
-from .models import customer, menu, payment, promotion, rating, recipes, orders
+from .models import model_loader, customer, menu, payment, promotion, rating, recipes, orders
 
 app = FastAPI()
 
@@ -32,51 +31,57 @@ if __name__ == "__main__":
 
 # I think once the Menu schema is completed, this will work better
 # Menu =====================================================================================================
-@app.get("/menu/", status_code=status.HTTP_200_OK)
+@app.get("/menu/", status_code=status.HTTP_200_OK, tags=["Menu"])
 async def get_menu(db: db_dependency):
    return db.query(menu.Menu).all() # menu.Menu is equivalent to model.class, just specifying which file in the model file to use
 
-@app.get("/menu/vegetarian", status_code=status.HTTP_200_OK)
-async def get_vegetarian_menu(db: db_dependency = Depends(get_db)):
+@app.get("/menu/vegetarian", status_code=status.HTTP_200_OK, tags=["Menu"])
+async def get_vegetarian_menu(db: db_dependency):
     return db.query(menu.Menu).filter(menu.Menu.isVegetarian == True).all()
 
 
-@app.post("/menu/", status_code = status.HTTP_201_CREATED)
-async def add_menu_item(Menu: schema.MenuBase, db: db_dependency):
-    db_menu = menu.Menu(**Menu.model_dump()) #lowercase menu is the menu.py file, uppercase is the parameter for the function
+@app.post("/menu/", status_code=status.HTTP_201_CREATED, tags=["Menu"])
+async def add_menu_item(menu_request: schema.MenuCreate, db: db_dependency):
+    db_menu = menu.Menu(**menu_request.model_dump()) #lowercase menu is the menu.py file, uppercase is the parameter for the function
     db.add(db_menu)
     db.commit()
-    return {"detail": "Item added successfully."}
+    db.refresh(db_menu)
+    #return {"detail": "Item added successfully."}
+    return db_menu
 
-@app.put("/menu/{menu_id}", response_model = schema.MenuBase, status_code=status.HTTP_200_OK )
-async def update_menu_item(menu_id: int, menu_request: schema.MenuBase, db: db_dependency): # more goes in the parenthesis
-    db_menu = db.query(menu.Menu).filter(menu.Menu.id == menu_id)
-    if db_menu.first() is None:
+@app.put("/menu/{menu_id}", response_model = schema.MenuUpdate, status_code=status.HTTP_200_OK, tags=["Menu"])
+async def update_menu_item(menu_id: int, menu_request: schema.MenuUpdate, db: db_dependency): # more goes in the parenthesis
+    db_menu = db.query(menu.Menu).filter(menu.Menu.id == menu_id).first()
+    if db_menu is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
     update_data = menu_request.model_dump(exclude_unset = True)
-    db_menu.update(update_data, synchronize_session=False)
+    for key, value in update_data.items():
+        setattr(db_menu, key, value)
+    #db_menu.update(update_data, synchronize_session=False)
     db.commit()
-    print("Item updated successfully.")
-    return db_menu.first()
+    db.refresh(db_menu)
+    #print("Item updated successfully.")
+    return db_menu
 
 
-@app.delete("/menu/{menu_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_menu_item(menu_id: int, menu_request: schema.MenuBase, db: db_dependency): #more goes inside parenthesis
-    db_menu = db.query(menu.Menu).filter(menu.Menu.id == menu_id)
-    if db_menu.first() is None:
+@app.delete("/menu/{menu_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Menu"])
+async def delete_menu_item(menu_id: int, db: db_dependency): #more goes inside parenthesis
+    db_menu = db.query(menu.Menu).filter(menu.Menu.id == menu_id).first()
+    if db_menu is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    delete_data = menu_request.model_dump(exclude_unset = True)
-    db_menu.delete(delete_data)
+    #delete_data = menu_request.model_dump(exclude_unset = True)
+    #db_menu.delete(delete_data)
+    db.delete(db_menu)
     db.commit()
     return {"detail": "Item deleted successfully."}
 
 # Orders ============================================================================================
-@app.get("/orders/", status_code=status.HTTP_200_OK)
+@app.get("/orders/", status_code=status.HTTP_200_OK, tags=["Orders"])
 async def get_all_orders(db: db_dependency):
    return db.query(orders.Order).all()
 
 #This reveals all order details
-@app.get("/orders/{tracking_number}", status_code=status.HTTP_200_OK)
+@app.get("/orders/{tracking_number}", status_code=status.HTTP_200_OK, tags=["Orders"])
 async def track_order(tracking_number: int, db: db_dependency):
     db_order = db.query(orders.Order).filter(orders.Order.id == tracking_number).first()
     if not db_order:
@@ -85,82 +90,95 @@ async def track_order(tracking_number: int, db: db_dependency):
         "tracking_number": db_order.id,
         "status": db_order.order_status,
         "order_date": db_order.order_date,
-        "is_takeout": db_order.is_takeout,
-        "is_delivery": db_order.is_delivery,
+        "is_takeout": db_order.isTakeout,
+        "is_delivery": db_order.isDelivery,
         "total_price": db_order.total_price
     }
 
-@app.post("/orders/", status_code=status.HTTP_201_CREATED)
-async def add_new_order(Orders: schema.OrderBase, db: db_dependency):
-    db_orders = orders.Order(**Orders.model_dump())
+@app.post("/orders/", status_code=status.HTTP_201_CREATED, tags=["Orders"])
+async def add_new_order(order_request: schema.OrderCreate, db: db_dependency):
+    db_orders = orders.Order(**order_request.model_dump())
     db.add(db_orders)
     db.commit()
-    return {"detail": "Order created successfully.",
-            "tracking_number": orders.id
+    db.refresh(db_orders)
+    return {
+        "detail": "Order created successfully.",
+        "tracking_number": db_orders.id
             }
 
-@app.put("/order/{order_id}", response_model = schema.OrderBase, status_code=status.HTTP_200_OK )
+@app.put("/order/{order_id}", response_model=schema.OrderBase, status_code=status.HTTP_200_OK, tags=["Orders"])
 async def update_order(order_id: int, order_request: schema.OrderUpdate, db: db_dependency): # more goes in the parenthesis
-    db_order = db.query(orders.Order).filter(orders.Order.id == order_id)
-    if db_order.first() is None:
+    db_order = db.query(orders.Order).filter(orders.Order.id == order_id).first()
+    if db_order is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
     update_data = order_request.model_dump(exclude_unset = True)
-    db_order.update(update_data, synchronize_session=False)
+    for key, value in update_data.items():
+        setattr(db_order, key, value)
+    #db_order.update(update_data, synchronize_session=False)
     db.commit()
     print("Order updated successfully.")
     return db_order.first()
 
-@app.delete("/order/{order_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_order(order_id: int, order_request: schema.OrderUpdate, db: db_dependency): #more goes inside parenthesis
+@app.delete("/order/{order_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Orders"])
+async def delete_order(order_id: int, db: db_dependency): #more goes inside parenthesis
     db_order = db.query(orders.Order).filter(orders.Order.id == order_id)
     if db_order.first() is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Order not found")
-    delete_data = order_request.model_dump(exclude_unset = True)
-    db_order.delete(delete_data)
+    #delete_data = order_request.model_dump(exclude_unset = True)
+    db_order.delete(synchronize_session=False)
     db.commit()
     return {"detail": "Order deleted successfully."}
 
 
 
 # Customers ================================================================================================
-@app.get("/customers/", status_code=status.HTTP_200_OK)
+@app.get("/customers/", status_code=status.HTTP_200_OK, tags=["Customers"])
 async def get_all_customers(db: db_dependency):
     return db.query(customer.Customer).all()
 
-@app.get("/customers/{customer_id}", status_code=status.HTTP_200_OK)
+@app.get("/customers/{customer_id}", status_code=status.HTTP_200_OK, tags=["Customers"])
 async def get_customer(customer_id: int, db: db_dependency):
-    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id)
-    if db_customer.first() is None:
+    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id).first()
+    if db_customer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
-    return db_customer.first()
+    return db_customer
 
-@app.post("/customers/", status_code=status.HTTP_201_CREATED)
-async def add_new_customer(customer_data: schema.CustomerBase, db: db_dependency):
+@app.post("/customers/", status_code=status.HTTP_201_CREATED, tags=["Customers"])
+async def add_new_customer(customer_data: schema.CustomerCreate, db: db_dependency):
     db_customer =  customer.Customer(**customer_data.model_dump())
     db.add(db_customer)
     db.commit()
-    return {"detail": "Customer created successfully."}
+    db.refresh(db_customer)
+    return {
+        "detail": "Customer created successfully.",
+        "customer_id": db_customer.id
+    }
 
-@app.put("/customers/{customer_id}", response_model=schema.CustomerBase, status_code=status.HTTP_200_OK )
+@app.put("/customers/{customer_id}", response_model=schema.Customer, status_code=status.HTTP_200_OK, tags=["Customers"])
 async def update_customer(customer_id: int, customer_request: schema.CustomerUpdate, db: db_dependency):
-    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id)
-    if db_customer.first() is None:
+    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id).first()
+    if db_customer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
     update_data = customer_request.model_dump(exclude_unset = True)
-    db_customer.update(update_data, synchronize_session=False)
+    #db_customer.update(update_data, synchronize_session=False)
+    for key, value in update_data.items():
+        setattr(db_customer, key, value)
     db.commit()
-    print("Customer updated successfully.")
-    return db_customer.first()
+    #print("Customer updated successfully.")
+    return db_customer
 
-@app.delete("/customers/{customer_id}", status_code=status.HTTP_204_NO_CONTENT)
+@app.delete("/customers/{customer_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Customers"])
 async def delete_customer(customer_id: int, db: db_dependency):
-    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id)
-    if db_customer.first() is None:
+    db_customer = db.query(customer.Customer).filter(customer.Customer.id == customer_id).first()
+    if db_customer is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Customer not found")
     db_customer.delete(synchronize_session=False)
     db.commit()
     return {"detail": "Customer deleted successfully."}
 
+
+
+"""
 # Promotions ================================================================================================
 @app.get("/promotions/", status_code=status.HTTP_200_OK)
 async def get_all_promotions(db: db_dependency):
@@ -260,3 +278,4 @@ async def add_new_payment(payment_data: schema.PaymentCreate, db: db_dependency)
     db.add(db_payment)
     db.commit()
     return {"detail": "Payment created successfully."}
+"""
