@@ -14,5 +14,5 @@ class Rating(Base):
     customer_id = Column(Integer, ForeignKey("customers.id"))
     menu_item_id = Column(Integer, ForeignKey("menu.id"))
 
-    customer = relationship("Customer", back_populates="ratings")
-    menu = relationship("Menu", back_populates="ratings")
+    customer = relationship("Customer")
+    menu = relationship("Menu")

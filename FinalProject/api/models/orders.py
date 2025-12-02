@@ -10,7 +10,7 @@ class Order(Base):
 
     id = Column(Integer, primary_key=True, index=True, autoincrement=True)
     customer_id = Column(Integer, ForeignKey("customers.id"))
-    menu_item_id = Column(Integer, ForeignKey("menu.id"))
+    menu_id = Column(Integer, ForeignKey("menu.id"))
     promo_code = Column(String(250), ForeignKey("promotions.promo_code"), nullable=True)
 
     order_date = Column(DATETIME, default=datetime.utcnow)
@@ -23,10 +23,10 @@ class Order(Base):
 
 
 # order_details = relationship("OrderDetail", back_populates="order")
-customer = relationship("Customer", back_populates="orders")
-payments = relationship("Payment", back_populates="orders")
-promotions = relationship("Promotion", back_populates="orders")
-menu = relationship("Menu", back_populates="orders")
+customer = relationship("Customer")
+payments = relationship("Payment")
+promotions = relationship("Promotion")
+menu = relationship("Menu")
 
 '''originally in order_details.py:
 class OrderDetail(Base):

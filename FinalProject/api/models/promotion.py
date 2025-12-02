@@ -10,4 +10,4 @@ class Promotion(Base):
     expiration_date = Column(DATETIME)
     discount = Column(DECIMAL(3,2), default=0.00)
 
-    orders = relationship("Order", back_populates="promotions")
+    orders = relationship("Order", )

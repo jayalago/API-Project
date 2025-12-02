@@ -12,7 +12,7 @@ class Customer(Base):
     phone_number = Column(String(15), default = "Not provided.")
     address = Column(String(150))
 
-    orders = relationship("Order", back_populates="customer")
-    payments = relationship("Payment", back_populates="customer")
-    ratings = relationship("Rating", back_populates="customer")
+    orders = relationship("Order")
+    payments = relationship("Payment")
+    ratings = relationship("Rating")
 

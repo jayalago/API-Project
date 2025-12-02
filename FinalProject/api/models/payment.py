@@ -15,5 +15,5 @@ class Payment(Base):
     payment_type = Column(String(100))
     amount = Column(DECIMAL(10,2))
     #Relationships =======================================================================
-    customer = relationship("Customer", back_populates="payments")
-    order = relationship("Order", back_populates="payments")
+    customer = relationship("Customer")
+    order = relationship("Order")
