@@ -102,7 +102,16 @@ async def get_orders_by_date_range(start_date: str, end_date: str, db: db_depend
         orders.Order.order_date >= start_date,
         orders.Order.order_date <= end_date
     ).all()
+#shows payment to order
+@app.post("/orders/{order_id}/pay", tags=["Orders"])
+async def pay_order(order_id: int, payment_data: schema.PaymentCreate, db: db_dependency):
+    order = db.query(orders.Order).get(order_id)
+    if payment_data.amount >= float(payment.order.total_price):
+        payment.isTransactionComplete = True
+        db.commit()
+        db.refresh(payment)
 
+    return payment
 
 @app.post("/orders/", status_code=status.HTTP_201_CREATED, tags=["Orders"])
 async def add_new_order(order_request: schema.OrderCreate, db: db_dependency):
@@ -128,7 +137,7 @@ async def update_order(order_id: int, order_request: schema.OrderUpdate, db: db_
     print("Order updated successfully.")
     return db_order.first()
 
-#Applying payment
+#Applying promo
 @app.put("/orders/{order_id}/apply-promo", status_code=status.HTTP_200_OK, tags=["Orders"])
 async def apply_promo_code(order_id: int, promo_code: str, db: db_dependency):
     order = db.query(orders.Order).filter(orders.Order.id == order_id).first()
