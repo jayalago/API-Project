@@ -95,6 +95,15 @@ async def track_order(tracking_number: int, db: db_dependency):
         "total_price": db_order.total_price
     }
 
+#Reveals all orders in specific time frame
+@app.get("/orders/{date_range}", status_code=status.HTTP_200_OK, tags=["Orders"])
+async def get_orders_by_date_range(start_date: str, end_date: str, db: db_dependency):
+    return db.query(orders.Order).filter(
+        orders.Order.order_date >= start_date,
+        orders.Order.order_date <= end_date
+    ).all()
+
+
 @app.post("/orders/", status_code=status.HTTP_201_CREATED, tags=["Orders"])
 async def add_new_order(order_request: schema.OrderCreate, db: db_dependency):
     db_orders = orders.Order(**order_request.model_dump())
@@ -118,6 +127,17 @@ async def update_order(order_id: int, order_request: schema.OrderUpdate, db: db_
     db.commit()
     print("Order updated successfully.")
     return db_order.first()
+
+#Applying payment
+@app.put("/orders/{order_id}/apply-promo", status_code=status.HTTP_200_OK, tags=["Orders"])
+async def apply_promo_code(order_id: int, promo_code: str, db: db_dependency):
+    order = db.query(orders.Order).filter(orders.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    order.promo_code = promo_code
+    db.commit()
+    return order
+
 
 @app.delete("/order/{order_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Orders"])
 async def delete_order(order_id: int, db: db_dependency): #more goes inside parenthesis
