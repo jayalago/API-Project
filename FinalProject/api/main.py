@@ -39,7 +39,6 @@ async def get_menu(db: db_dependency):
 async def get_vegetarian_menu(db: db_dependency):
     return db.query(menu.Menu).filter(menu.Menu.isVegetarian == True).all()
 
-
 @app.post("/menu/", status_code=status.HTTP_201_CREATED, tags=["Menu"])
 async def add_menu_item(menu_request: schema.MenuCreate, db: db_dependency):
     db_menu = menu.Menu(**menu_request.model_dump()) #lowercase menu is the menu.py file, uppercase is the parameter for the function
@@ -54,7 +53,7 @@ async def update_menu_item(menu_id: int, menu_request: schema.MenuUpdate, db: db
     db_menu = db.query(menu.Menu).filter(menu.Menu.id == menu_id).first()
     if db_menu is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    update_data = menu_request.model_dump(exclude_unset = True)
+    update_data = menu_request.model_dump(exclude_unset=True)
     for key, value in update_data.items():
         setattr(db_menu, key, value)
     #db_menu.update(update_data, synchronize_session=False)
@@ -315,7 +314,7 @@ async def add_new_payment(payment_data: schema.PaymentCreate, db: db_dependency)
     return {"detail": "Payment created successfully."}
 
 @app.put("/payments/{payment_id}", response_model=schema.Payment, status_code=status.HTTP_200_OK, tags=["Payments"])
-async def update_payemnt(payment_id: int, payment_data: schema.PaymentUpdate, db: db_dependency):
+async def update_payment(payment_id: int, payment_data: schema.PaymentUpdate, db: db_dependency):
     db_payment = db.query(payment.Payment).filter(payment.Payment.id == payment_id).first()
     if db_payment is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Payment not found")
@@ -325,7 +324,8 @@ async def update_payemnt(payment_id: int, payment_data: schema.PaymentUpdate, db
     db.commit()
     db.refresh(db_payment)
     return db_payment
-@app.delete("payemnts/{payment_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Payments"])
+
+@app.delete("payments/{payment_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Payments"])
 async def delete_payment(payment_id: int, db: db_dependency):
     db_payment = db.query(payment.Payment).filter(payment.Payment.id == payment_id).first()
     if db_payment is None:

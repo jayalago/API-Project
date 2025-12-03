@@ -37,8 +37,8 @@ class MenuCreate(MenuBase):
     pass
 
 class MenuUpdate(BaseModel):
-    sandwich_name: Optional[str]
-    item_ingredients: Optional[str]
+    sandwich_name: Optional[str] = None
+    item_ingredients: Optional[str] = None
     isVegetarian: Optional[bool] = None
     price: Optional[float] = None
 
