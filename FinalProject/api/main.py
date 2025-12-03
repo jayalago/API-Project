@@ -53,9 +53,7 @@ async def update_menu_item(menu_id: int, menu_request: schema.MenuUpdate, db: db
     db_menu = db.query(menu.Menu).filter(menu.Menu.id == menu_id).first()
     if db_menu is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Item not found")
-    update_data = menu_request.model_dump(exclude_unset=True)
-    for key, value in update_data.items():
-        setattr(db_menu, key, value)
+    update_data = menu_request.model_dump(exclude_unset = True)
     #db_menu.update(update_data, synchronize_session=False)
     db.commit()
     db.refresh(db_menu)
@@ -101,16 +99,6 @@ async def get_orders_by_date_range(start_date: str, end_date: str, db: db_depend
         orders.Order.order_date >= start_date,
         orders.Order.order_date <= end_date
     ).all()
-#shows payment to order
-@app.post("/orders/{order_id}/pay", tags=["Orders"])
-async def pay_order(order_id: int, payment_data: schema.PaymentCreate, db: db_dependency):
-    order = db.query(orders.Order).get(order_id)
-    if payment_data.amount >= float(payment.order.total_price):
-        payment.isTransactionComplete = True
-        db.commit()
-        db.refresh(payment)
-
-    return payment
 
 @app.post("/orders/", status_code=status.HTTP_201_CREATED, tags=["Orders"])
 async def add_new_order(order_request: schema.OrderCreate, db: db_dependency):
@@ -136,17 +124,6 @@ async def update_order(order_id: int, order_request: schema.OrderUpdate, db: db_
     print("Order updated successfully.")
     return db_order.first()
 
-#Applying promo
-@app.put("/orders/{order_id}/apply-promo", status_code=status.HTTP_200_OK, tags=["Orders"])
-async def apply_promo_code(order_id: int, promo_code: str, db: db_dependency):
-    order = db.query(orders.Order).filter(orders.Order.id == order_id).first()
-    if not order:
-        raise HTTPException(status_code=404, detail="Order not found")
-    order.promo_code = promo_code
-    db.commit()
-    return order
-
-
 @app.delete("/order/{order_id}", status_code=status.HTTP_204_NO_CONTENT, tags=["Orders"])
 async def delete_order(order_id: int, db: db_dependency): #more goes inside parenthesis
     db_order = db.query(orders.Order).filter(orders.Order.id == order_id)
@@ -156,8 +133,6 @@ async def delete_order(order_id: int, db: db_dependency): #more goes inside pare
     db_order.delete(synchronize_session=False)
     db.commit()
     return {"detail": "Order deleted successfully."}
-
-
 
 # Customers ================================================================================================
 @app.get("/customers/", status_code=status.HTTP_200_OK, tags=["Customers"])
@@ -203,8 +178,6 @@ async def delete_customer(customer_id: int, db: db_dependency):
     db_customer.delete(synchronize_session=False)
     db.commit()
     return {"detail": "Customer deleted successfully."}
-
-
 
 # Promotions ================================================================================================
 @app.get("/promotions/", status_code=status.HTTP_200_OK, tags=["Promotions"])
